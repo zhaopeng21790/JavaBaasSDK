@@ -10,8 +10,8 @@ Pod::Spec.new do |s|
   s.license      = "MIT"
   s.author       = { "赵朋" => "185403812@qq.com" }
   s.platform     = :ios, "6.0"
-  s.source       = { :git => "https://github.com/zhaopeng21790/JavaBaasSDK.git",:tag => '0.0.2' }
-  s.source_files  = "SDK", "Classes/**/*.{h,m}"
+  s.source       = { :git => "https://github.com/zhaopeng21790/JavaBaasSDK.git",:tag => '0.0.3' }
+  s.source_files  = "Classes/**/*.{h,m}"
   s.exclude_files = "Classes/Exclude"
   s.frameworks = "UIKit", "Foundation"
   s.dependency "HappyDNS"
