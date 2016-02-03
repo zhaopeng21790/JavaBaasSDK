@@ -155,7 +155,7 @@ static JBCacheManager *_cacheManager;
 
 + (BOOL)writeJBInstallation:(NSString *)installation {
     if (!installation) {
-        return nil;
+        return NO;
     }
     NSArray *pathcaches=NSSearchPathForDirectoriesInDomains(NSCachesDirectory
                                                             , NSUserDomainMask

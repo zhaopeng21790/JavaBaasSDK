@@ -580,6 +580,9 @@
     NSArray *firstArray = [NSArray arrayWithObject:firstQuery.className];
     for (JBQuery *query in array) {
         BOOL ret = [firstArray containsObject:query.className];
+        if (!ret) {
+            
+        }
         NSAssert(ret, @"参数类型不匹配");
     }
     JBQuery *query = [JBQuery queryWithClassName:firstQuery.className];

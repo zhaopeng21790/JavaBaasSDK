@@ -330,16 +330,19 @@
                 return NO;
             }
         }
-        int code = [[responseObject objectForKey:@"code"] intValue];
-        NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
-            if (error) {
-                *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
+        if (responseObject) {
+            int code = [[responseObject objectForKey:@"code"] intValue];
+            NSString *message = [responseObject objectForKey:@"message"];
+            if (code > 0 && message) {
+                if (error) {
+                    *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
+                }
+                return NO;
             }
+            return YES;
+        }else {
             return NO;
         }
-        return responseObject;
-        
     }else {
         urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className}];
         id responseObject = [HttpRequestManager synchronousWithMethod:@"POST" urlString:urlPath parameters:_dictionary error:error];

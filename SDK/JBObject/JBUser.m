@@ -120,7 +120,6 @@
     }];
 }
 
-#warning 修改密码后需要fetch来获取sessionToken
 //修改密码
 - (BOOL)updatePasswork:(NSString *)password newPassword:(NSString *)newPassword error:(NSError *__autoreleasing *)error {
     if (!self.objectId) {
