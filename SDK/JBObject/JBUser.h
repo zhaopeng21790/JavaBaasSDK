@@ -64,7 +64,7 @@
  *
  *  @return <#return value description#>
  */
-- (BOOL)updatePasswork:(NSString *)password newPassword:(NSString *)newPassword error:(NSError **)error;
+- (BOOL)updatePassword:(NSString *)password newPassword:(NSString *)newPassword error:(NSError **)error;
 
 /**
  *  更新密码(异步)

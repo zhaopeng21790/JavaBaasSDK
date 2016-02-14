@@ -121,7 +121,7 @@
 }
 
 //修改密码
-- (BOOL)updatePasswork:(NSString *)password newPassword:(NSString *)newPassword error:(NSError *__autoreleasing *)error {
+- (BOOL)updatePassword:(NSString *)password newPassword:(NSString *)newPassword error:(NSError *__autoreleasing *)error {
     if (!self.objectId) {
         *error = [NSError errorWithDomain:@"without user id" code:JBError_NO_USER userInfo:@{NSLocalizedDescriptionKey:@"without user id"}];
         return NO;

@@ -581,9 +581,9 @@
     for (JBQuery *query in array) {
         BOOL ret = [firstArray containsObject:query.className];
         if (!ret) {
-            
+            return nil;
+//            NSAssert(ret, @"参数类型不匹配");
         }
-        NSAssert(ret, @"参数类型不匹配");
     }
     JBQuery *query = [JBQuery queryWithClassName:firstQuery.className];
     NSMutableString *orMutableString = [NSMutableString string];
