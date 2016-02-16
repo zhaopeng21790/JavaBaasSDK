@@ -66,7 +66,7 @@
 
 
 
-
+//查询条件
 - (void)whereKey:(NSString *)key equalTo:(id)value;
 
 - (void)whereKey:(NSString *)key notEqualTo:(id)value;

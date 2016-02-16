@@ -74,9 +74,7 @@
  *  发起post请求
  *
  *  @param urlString  url
- *  @param parameters <#parameters description#>
- *  @param success    <#success description#>
- *  @param failure    <#failure description#>
+ *  @param parameters
  */
 + (void)postObjectWithUrlString:(NSString *)urlString parameters:(NSDictionary *)parameters
                         success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
@@ -96,15 +94,36 @@
 
 
 
-
+/**
+ *  云方法(异步)
+ *
+ *  @param funName    云方法名称
+ *  @param parameters 参数（NSDictionary）
+ */
 + (void)cloudWithFunName:(NSString *)funName parameters:(NSDictionary *)parameters
                     success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
                     failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure;
 
 
+/**
+ *  云方法(同步)
+ *
+ *  @param funName    云方法名次
+ *  @param parameters 参数(NSDictionary)
+ *  @param error      ERROR错误信息
+ */
 + (id)cloudWithFunName:(NSString *)funName parameters:(NSDictionary *)parameters error:(NSError **)error;
 
 
+/**
+ *  http同步请求
+ *
+ *  @param method     GET/POST/PUT/DELETE
+ *  @param urlString  URL
+ *  @param parameters
+ *  @param error      ERROR信息
+ *
+ */
 + (id)synchronousWithMethod:(NSString *)method urlString:(NSString *)urlString parameters:(NSDictionary *)parameters error:(NSError **)error ;
 
 

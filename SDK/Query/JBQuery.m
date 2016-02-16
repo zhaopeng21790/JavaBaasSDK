@@ -33,6 +33,7 @@
     return self;
 }
 
+//翻译约束条件
 - (NSMutableDictionary *)getQueryConditions {
     NSMutableString *whereString = [NSMutableString string];
     NSArray *keyArray_1 = [_dictionary allKeys];
@@ -94,7 +95,7 @@
     }
     int code = [[responseObject objectForKey:@"code"] intValue];
     NSString *message = [responseObject objectForKey:@"message"];
-    if (code > 0 && message) {
+    if (code != 0 && message) {
         if (error) {
             *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
         }
@@ -166,7 +167,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -198,7 +199,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -251,7 +252,7 @@
     }
     int code = [[responseObject objectForKey:@"code"] intValue];
     NSString *message = [responseObject objectForKey:@"message"];
-    if (code > 0 && message) {
+    if (code != 0 && message) {
         if (error) {
             *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
         }
@@ -580,10 +581,7 @@
     NSArray *firstArray = [NSArray arrayWithObject:firstQuery.className];
     for (JBQuery *query in array) {
         BOOL ret = [firstArray containsObject:query.className];
-        if (!ret) {
-            return nil;
-//            NSAssert(ret, @"参数类型不匹配");
-        }
+        NSAssert(ret, @"参数类型不匹配");
     }
     JBQuery *query = [JBQuery queryWithClassName:firstQuery.className];
     NSMutableString *orMutableString = [NSMutableString string];

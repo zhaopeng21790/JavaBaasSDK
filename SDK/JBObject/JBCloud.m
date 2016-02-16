@@ -28,7 +28,6 @@
 + (void)callFunctionInBackground:(NSString *)function withParameters:(NSDictionary *)parameters block:(JBIdResultBlock)block {
     [HttpRequestManager cloudWithFunName:function parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         @try {
-            
             if (operation.responseObject) {
                 int code = [[operation.responseObject objectForKey:@"code"] intValue];
                 if (code == 0) {

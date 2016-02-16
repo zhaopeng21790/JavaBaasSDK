@@ -14,18 +14,12 @@
 static JBACL *_acl;
 
 + (JBACL *)ACL {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _acl = [[JBACL alloc] init];
-    });
+    _acl = [[JBACL alloc] init];
     return _acl;
 }
 
 + (JBACL *)ACLWithUser:(JBUser *)user {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _acl = [[JBACL alloc] init];
-    });
+    _acl = [[JBACL alloc] init];
     return _acl;
 }
 

@@ -31,19 +31,23 @@
  *
  *  @param object 用户信息
  *
- *  @return <#return value description#>
  */
 - (BOOL)writeJBUserCacheFile:(JBObject *)object;
 
 /**
  *  清除本地用户信息
  *
- *  @return <#return value description#>
  */
 - (BOOL)clearJBUserCacheFile;
 
 + (BOOL)writeJBInstallation:(NSString *)installation;
 
 + (NSString *)readJBInstallation;
+
+
++ (BOOL)writeJBServerTime:(NSString *)serverTime;
+
++ (NSString *)readJBServerTime;
+
 
 @end

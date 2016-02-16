@@ -68,7 +68,7 @@
 
 - (void)saveInBackgroundWithBlock:(JBIdResultBlock)block progressBlock:(JBProgressBlock)progressBlock {
     NSString *baseUrl = [JBOSCloud getBaseUrlString];
-    NSString *url = [NSString stringWithFormat:@"%@file/getToken?fileName=iOS_Buge&platform=qiniu", baseUrl];
+    NSString *url = [NSString stringWithFormat:@"%@/api/file/getToken?fileName=iOS_Buge&platform=qiniu", baseUrl];
     [HttpRequestManager getObjectWithUrlString:url success:^(AFHTTPRequestOperation *operation, id responseObject) {
         QNUploadManager *upManager = [[QNUploadManager alloc] init];
         NSString *token = [[responseObject objectForKey:@"data"] objectForKey:@"token"];
@@ -103,7 +103,7 @@
 
 - (void)saveInBackgroundWithBlock:(JBIdResultBlock)block {
     NSString *baseUrl = [JBOSCloud getBaseUrlString];
-    NSString *url = [NSString stringWithFormat:@"%@/file/getToken?fileName=iOS_Buge&platform=qiniu", baseUrl];
+    NSString *url = [NSString stringWithFormat:@"%@/api/file/getToken?fileName=iOS_Buge&platform=qiniu", baseUrl];
     [HttpRequestManager getObjectWithUrlString:url success:^(AFHTTPRequestOperation *operation, id responseObject) {
         QNUploadManager *upManager = [[QNUploadManager alloc] init];
         NSString *token = [[responseObject objectForKey:@"data"] objectForKey:@"token"];

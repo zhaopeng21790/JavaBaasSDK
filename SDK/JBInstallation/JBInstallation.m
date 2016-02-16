@@ -26,9 +26,16 @@ static JBInstallation *_jbInstallation;
 + (instancetype)currentInstallation {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _jbInstallation = [[JBInstallation alloc] init];
+        _jbInstallation = [[super allocWithZone:NULL] init];
     });
     return _jbInstallation;
 }
+
++ (instancetype)allocWithZone:(struct _NSZone *)zone {
+    return [JBInstallation currentInstallation];
+}
+
+
+
 
 @end

@@ -215,7 +215,7 @@
     }
     int code = [[responseObject objectForKey:@"code"] intValue];
     NSString *message = [responseObject objectForKey:@"message"];
-    if (code > 0 && message) {
+    if (code != 0 && message) {
         *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
         return nil;
     }
@@ -333,7 +333,7 @@
         if (responseObject) {
             int code = [[responseObject objectForKey:@"code"] intValue];
             NSString *message = [responseObject objectForKey:@"message"];
-            if (code > 0 && message) {
+            if (code != 0 && message) {
                 if (error) {
                     *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
                 }
@@ -354,7 +354,7 @@
         if (responseObject) {
             int code = [[responseObject objectForKey:@"code"] intValue];
             NSString *message = [responseObject objectForKey:@"message"];
-            if (code > 0 && message) {
+            if (code != 0 && message) {
                 if (error) {
                     *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
                 }
@@ -435,7 +435,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -492,7 +492,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }

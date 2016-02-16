@@ -46,8 +46,8 @@ typedef enum {
     JBError_NO_USER = 5002,//without user 
     JBError_COUNT_ZORE = 5003,//count=0
     JBError_PARAMS_ERROR = 5004, //参数类型错误
-    JBError_URL_ERROR = 5005,
-    JBError_NICKNAME_ALREADY_EXIST = 5006
+    JBError_INTERNET_ERROR = 5005, //网络或者URL错误
+    JBError_NICKNAME_ALREADY_EXIST = 5006 //nickname 已经存在
 
 
 }JBErrorCode;

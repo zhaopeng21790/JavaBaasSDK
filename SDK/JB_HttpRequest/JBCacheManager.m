@@ -24,13 +24,16 @@ static JBCacheManager *_cacheManager;
 + (JBCacheManager *)sharedJBCacheManager {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _cacheManager = [[JBCacheManager alloc] init];
+        _cacheManager = [[super allocWithZone:NULL] init];
     });
     return _cacheManager;
 }
 
-- (instancetype)init
-{
++ (instancetype)allocWithZone:(struct _NSZone *)zone {
+    return [JBCacheManager sharedJBCacheManager];
+}
+
+- (instancetype)init {
     self = [super init];
     if (self) {
     }
@@ -39,7 +42,7 @@ static JBCacheManager *_cacheManager;
 
 
 #pragma mark -数据缓存操作
-- (void)createDirectoryAtPath:(NSString *)path andData:(id)data{
+- (void)createDirectoryAtPath:(NSString *)path andData:(id)data {
     NSString *md5Path = [path MD5HexDigest];
     NSArray *pathcaches=NSSearchPathForDirectoriesInDomains(NSCachesDirectory
                                                             , NSUserDomainMask
@@ -153,6 +156,8 @@ static JBCacheManager *_cacheManager;
 }
 
 
+
+
 + (BOOL)writeJBInstallation:(NSString *)installation {
     if (!installation) {
         return NO;
@@ -182,6 +187,51 @@ static JBCacheManager *_cacheManager;
         return installation;
     }
 }
+
++ (BOOL)writeJBServerTime:(NSString *)serverTime {
+    if (!serverTime) {
+        return NO;
+    }
+    NSArray *pathcaches=NSSearchPathForDirectoriesInDomains(NSCachesDirectory
+                                                            , NSUserDomainMask
+                                                            , YES);
+    NSString *filePath = [[pathcaches objectAtIndex:0] stringByAppendingPathComponent:[NSString stringWithFormat:@"JavaBaas"]];
+    NSString *dataPath = [[pathcaches objectAtIndex:0] stringByAppendingPathComponent:[NSString stringWithFormat:@"JavaBaas/JBServerTime"]];
+    [[NSFileManager defaultManager] createDirectoryAtPath:filePath withIntermediateDirectories:YES attributes:nil error:nil];
+    [[NSFileManager defaultManager] createFileAtPath:dataPath contents:nil attributes:nil];
+    NSError *error;
+    return [serverTime writeToFile:dataPath atomically:YES encoding:NSUTF8StringEncoding error:&error];
+    
+    
+}
++ (NSString *)readJBServerTime {
+    NSArray *pathcaches=NSSearchPathForDirectoriesInDomains(NSCachesDirectory
+                                                            , NSUserDomainMask
+                                                            , YES);
+    NSString *dataPath = [[pathcaches objectAtIndex:0] stringByAppendingPathComponent:[NSString stringWithFormat:@"JavaBaas/JBServerTime"]];
+    NSError *error;
+    NSString *serverTime = [[NSString alloc] initWithContentsOfFile:dataPath encoding:NSUTF8StringEncoding error:&error];
+    if (error) {
+        return nil;
+    }else {
+        return serverTime;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -88,7 +88,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -139,7 +139,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -191,7 +191,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -206,7 +206,7 @@
 
 + (void)logInWithUsernameInBackground:(NSString *)username password:(NSString *)password block:(JBObjectResultBlock)block {
     NSString *baseUrl = [JBOSCloud getBaseUrlString];
-    NSString *urlString = [NSString stringWithFormat:@"%@user/login?username=%@&password=%@",baseUrl,username, password];
+    NSString *urlString = [NSString stringWithFormat:@"%@/api/user/login?username=%@&password=%@",baseUrl,username, password];
     [HttpRequestManager getObjectWithUrlString:urlString success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:responseObject];
         JBObject *obj = [[JBObject alloc] initWithDictionary:responseObject];
@@ -239,7 +239,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -290,7 +290,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
@@ -340,7 +340,7 @@
     if (responseObject) {
         int code = [[responseObject objectForKey:@"code"] intValue];
         NSString *message = [responseObject objectForKey:@"message"];
-        if (code > 0 && message) {
+        if (code != 0 && message) {
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
