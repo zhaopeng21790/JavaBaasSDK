@@ -17,6 +17,8 @@
 @property (nonatomic, strong) NSMutableString *orMutableString;
 @property (nonatomic, strong) NSMutableString *inQueryMutableString;
 @property (nonatomic, strong) NSMutableDictionary *paramDictionary;
+@property (nonatomic, strong) NSMutableDictionary *orderKeyDictionary;
+@property (nonatomic, strong) NSMutableArray *orderKeyArray;
 @property (nonatomic, assign) kJBCachePolicyCache cachePolicy;
 @property (nonatomic, assign) NSInteger limit;
 @property (nonatomic, assign) NSInteger skip;

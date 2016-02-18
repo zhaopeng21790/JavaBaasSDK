@@ -17,7 +17,6 @@
 + (JBQuery *)queryWithClassName:(NSString *)className {
     JBQuery *query = [[JBQuery alloc] init];
     query.className = className;
-    
     return query;
 }
 
@@ -29,6 +28,8 @@
         self.dictionary = [[NSMutableDictionary alloc] init];
         self.orMutableString = [NSMutableString string];
         self.inQueryMutableString = [NSMutableString string];
+        self.orderKeyDictionary = [NSMutableDictionary dictionary];
+        self.orderKeyArray = [NSMutableArray array];
     }
     return self;
 }
@@ -72,8 +73,19 @@
             [whereString appendString:[NSString stringWithFormat:@"\"%@\":{%@}", [array objectAtIndex:1], [array objectAtIndex:0]]];
         }
     }
+    if (whereString.length) {
+        [self.paramDictionary setValue:[NSString stringWithFormat:@"{%@}",whereString] forKey:@"where"];
+    }
     
-    [self.paramDictionary setValue:[NSString stringWithFormat:@"{%@}",whereString] forKey:@"where"];
+    if (self.orderKeyArray.count) {
+        NSMutableString *mutableOrderString = [NSMutableString string];
+        for (NSString *keyStr in self.orderKeyArray) {
+            NSString *orderStr = [NSString stringWithFormat:@"\"%@\":%@,", keyStr, [self.orderKeyDictionary objectForKey:keyStr]];
+            [mutableOrderString appendString:orderStr];
+        }
+        [mutableOrderString deleteCharactersInRange:NSMakeRange(mutableOrderString.length-1, 1)];
+        [_paramDictionary setValue:[NSString stringWithFormat:@"{%@}", mutableOrderString] forKey:@"order"];
+    }
     
     return self.paramDictionary;
 }
@@ -516,55 +528,30 @@
 }
 
 - (void)orderByAscending:(NSString *)key {
-    NSMutableString *ascending = [NSMutableString stringWithFormat:@"\"%@\":%d",key, 1];
-    [_paramDictionary setValue:[NSString stringWithFormat:@"{%@}", ascending] forKey:@"order"];
+    [self.orderKeyDictionary removeAllObjects];
+    [self.orderKeyArray removeAllObjects];
+    [self.orderKeyArray addObject:key];
+    [self.orderKeyDictionary setObject:@(1) forKey:key];
 }
 
 - (void)orderByDescending:(NSString *)key {
-    NSMutableString *descending = [NSMutableString stringWithFormat:@"\"%@\":%d",key, -1];
-    [_paramDictionary setValue:[NSString stringWithFormat:@"{%@}", descending] forKey:@"order"];
+    [self.orderKeyDictionary removeAllObjects];
+    [self.orderKeyArray removeAllObjects];
+    [self.orderKeyArray addObject:key];
+    [self.orderKeyDictionary setObject:@(-1) forKey:key];
 }
 
 
 - (void)addAscendingOrder:(NSString *)key {
-    NSMutableString *ascending = [_paramDictionary objectForKey:@"order"];
-    NSMutableString *mutableString;
-    if (ascending) {
-        mutableString = [NSMutableString stringWithString:ascending];
-    }else {
-        mutableString = [NSMutableString string];
-    }
-    NSString *string = [NSString stringWithFormat:@"\"%@\":%d",key, 1];
-    if (ascending) {
-        [mutableString deleteCharactersInRange:NSMakeRange(ascending.length-1, 1)];
-        [mutableString appendString:@","];
-        [mutableString appendString:string];
-        [mutableString appendString:@"}"];
-        [_paramDictionary setValue:[NSString stringWithFormat:@"%@", mutableString] forKey:@"order"];
-    }else {
-        [_paramDictionary setValue:[NSString stringWithFormat:@"{%@}", string] forKey:@"order"];
-    }
+    [self.orderKeyArray removeObject:key];
+    [self.orderKeyDictionary setObject:@(1) forKey:key];
+    [self.orderKeyArray addObject:key];
 }
 
-
 - (void)addDescendingOrder:(NSString *)key {
-    NSMutableString *ascending = [_paramDictionary objectForKey:@"order"];
-    NSMutableString *mutableString;
-    if (ascending) {
-        mutableString = [NSMutableString stringWithString:ascending];
-    }else {
-        mutableString = [NSMutableString string];
-    }
-    NSString *string = [NSString stringWithFormat:@"\"%@\":%d",key, -1];
-    if (ascending) {
-        [mutableString deleteCharactersInRange:NSMakeRange(ascending.length-1, 1)];
-        [mutableString appendString:@","];
-        [mutableString appendString:string];
-        [mutableString appendString:@"}"];
-        [_paramDictionary setValue:[NSString stringWithFormat:@"%@", mutableString] forKey:@"order"];
-    }else {
-        [_paramDictionary setValue:[NSString stringWithFormat:@"{%@}", string] forKey:@"order"];
-    }
+    [self.orderKeyArray removeObject:key];
+    [self.orderKeyDictionary setObject:@(-1) forKey:key];
+    [self.orderKeyArray addObject:key];
 }
 
 - (void)includeKey:(NSString *)key {
@@ -583,7 +570,7 @@
 }
 
 - (void)setCachePolicy:(kJBCachePolicyCache)cachePolicy {
-    [_paramDictionary setValue:@(cachePolicy) forKey:@"cachePolicy"];
+    [_paramDictionary setValue:@(cachePolicy) forKey:@"JBCachePolicy"];
 }
 
 

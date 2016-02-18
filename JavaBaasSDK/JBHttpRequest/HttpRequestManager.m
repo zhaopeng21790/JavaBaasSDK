@@ -38,8 +38,8 @@
                        success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
                        failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure {
     
-    kJBCachePolicyCache cachePolicy = [[parameters objectForKey:@"cachePolicy"] intValue];
-    [parameters removeObjectForKey:@"cachePolicy"];
+    kJBCachePolicyCache cachePolicy = [[parameters objectForKey:@"JBCachePolicy"] intValue];
+    [parameters removeObjectForKey:@"JBCachePolicy"];
     
     NSMutableString *paramString = [NSMutableString string];
     NSArray *keyArray = [parameters allKeys];
@@ -129,8 +129,8 @@
                          success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
                          failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure{
     
-    kJBCachePolicyCache cachePolicy = [[queryDict objectForKey:@"cachePolicy"] intValue];
-    [queryDict removeObjectForKey:@"cachePolicy"];
+    kJBCachePolicyCache cachePolicy = [[queryDict objectForKey:@"JBCachePolicy"] intValue];
+    [queryDict removeObjectForKey:@"JBCachePolicy"];
     
     NSMutableString *paramString = [NSMutableString string];
     NSArray *keyArray = [queryDict allKeys];
@@ -151,6 +151,9 @@
     }else {
         urlString = [NSString stringWithFormat:@"%@/api/%@", baseUrl, urlPath];
     }
+    
+    NSLog(@"%@", urlString);
+    
     NSString *string = [urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
