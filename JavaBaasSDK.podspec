@@ -2,7 +2,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "JavaBaasSDK"
-  s.version      = "0.0.6"
+  s.version      = "0.0.7"
   s.summary      = "一款基于baas服务的SDK 提供基本查询 ACL 云方法 用户系统 第三方登录等"
   s.description  = "一款基于baas服务的SDK 提供基本查询 ACL 云方法 用户系统 第三方登录等等..."
   s.homepage     = "https://github.com/zhaopeng21790"
