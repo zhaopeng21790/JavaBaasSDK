@@ -14,7 +14,7 @@
     
     NSString *string;
     NSString *className = [dict objectForKey:@"className"];
-    NSString *objectId = [dict objectForKey:@"id"];
+    NSString *objectId = [dict objectForKey:@"_id"];
     
     if ([className isEqualToString:@"_User"]) {
         if (objectId) {

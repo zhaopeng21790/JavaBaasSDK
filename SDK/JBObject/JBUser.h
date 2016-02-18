@@ -51,7 +51,7 @@
 /**
  *  注册（异步方法）
  *
- *  @param block <#block description#>
+ *  @param block block description
  */
 - (void)signUpInBackGroundWithBlock:(JBIdResultBlock)block;
 
@@ -75,7 +75,7 @@
  *
  *  @return <#return value description#>
  */
-- (void)updatePassword:(NSString *)password newPassword:(NSString *)newPassword block:(JBIdResultBlock)block;
+- (void)updatePassword:(NSString *)password newPassword:(NSString *)newPassword block:(JBBooleanResultBlock)block;
 
 
 /**
@@ -99,7 +99,7 @@
  *
  *  @return <#return value description#>
  */
-+ (void)logInWithUsernameInBackground:(NSString *)username password:(NSString *)password block:(JBObjectResultBlock)block;
++ (void)logInWithUsernameInBackground:(NSString *)username password:(NSString *)password block:(JBUserResultBlock)block;
 
 
 
@@ -124,7 +124,7 @@
  *
  *  @return <#return value description#>
  */
-+ (void)logInWithAuthDataInBackground:(NSDictionary *)auth authType:(JBPlatform)platform block:(JBObjectResultBlock)block;
++ (void)logInWithAuthDataInBackground:(NSDictionary *)auth authType:(JBPlatform)platform block:(JBUserResultBlock)block;
 
 
 /**

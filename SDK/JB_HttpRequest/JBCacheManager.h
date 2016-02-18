@@ -32,7 +32,7 @@
  *  @param object 用户信息
  *
  */
-- (BOOL)writeJBUserCacheFile:(JBObject *)object;
+- (BOOL)writeJBUserCacheFile:(id)object;
 
 /**
  *  清除本地用户信息

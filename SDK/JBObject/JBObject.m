@@ -126,23 +126,47 @@
 
 
 
-- (void)incrementKey:(NSString *)key error:(NSError *__autoreleasing *)error {
-    [self incrementHttpWithParamsSync:@{key:@(1)} error:error];
+- (BOOL)incrementKey:(NSString *)key error:(NSError *__autoreleasing *)error {
+    id responseObject = [self incrementHttpWithParamsSync:@{key:@(1)} error:error];
+    if (responseObject) {
+        int code = [[responseObject objectForKey:@"code"] intValue];
+        if (code == 0) {
+            return YES;
+        }
+        return NO;
+    }else {
+        return NO;
+    }
 }
 
 - (void)incrementKeyInBackground:(NSString *)key block:(JBBooleanResultBlock)block {
     [self incrementHttpWithParamsInBackground:@{key:@(1)} block:block];
 }
 
-- (void)incrementKey:(NSString *)key byAmount:(NSNumber *)amount error:(NSError *__autoreleasing *)error {
+- (BOOL)incrementKey:(NSString *)key byAmount:(NSNumber *)amount error:(NSError *__autoreleasing *)error {
     if (amount) {
         if ([self isIntType:amount]) {
-            [self incrementHttpWithParamsSync:@{key:amount} error:error];
+            id responseObject = [self incrementHttpWithParamsSync:@{key:amount} error:error];
+            if (responseObject) {
+                int code = [[responseObject objectForKey:@"code"] intValue];
+                if (code == 0) {
+                    return YES;
+                }
+                return NO;
+            }else {
+                return NO;
+            }
         }else {
-            *error = [NSError errorWithDomain:@"参数类型错误" code:JBError_PARAMS_ERROR userInfo:@{NSLocalizedDescriptionKey:@"参数类型错误"}];
+            if (error) {
+                *error = [NSError errorWithDomain:@"参数类型错误" code:JBError_PARAMS_ERROR userInfo:@{NSLocalizedDescriptionKey:@"参数类型错误"}];
+            }
+            return NO;
         }
     }else {
-        *error = [NSError errorWithDomain:@"count ＝ 0" code:JBError_COUNT_ZORE userInfo:@{NSLocalizedDescriptionKey:@"count ＝ 0"}];
+        if (error) {
+            *error = [NSError errorWithDomain:@"count ＝ 0" code:JBError_COUNT_ZORE userInfo:@{NSLocalizedDescriptionKey:@"count ＝ 0"}];
+        }
+        return NO;
     }
 }
 
@@ -160,7 +184,7 @@
     }
 }
 
-- (void)incrementKeys:(NSDictionary *)keys error:(NSError *__autoreleasing *)error {
+- (BOOL)incrementKeys:(NSDictionary *)keys error:(NSError *__autoreleasing *)error {
     NSArray *array = [keys allKeys];
     BOOL temp = NO;
     for (NSString *key in array) {
@@ -174,10 +198,21 @@
         }
     }
     if (temp) {
-        *error = [NSError errorWithDomain:@"参数类型错误" code:JBError_PARAMS_ERROR userInfo:@{NSLocalizedDescriptionKey:@"参数类型错误"}];
-        return;
+        if (error) {
+           *error = [NSError errorWithDomain:@"参数类型错误" code:JBError_PARAMS_ERROR userInfo:@{NSLocalizedDescriptionKey:@"参数类型错误"}];
+        }
+        return NO;
     }
-    [self incrementHttpWithParamsSync:keys error:error];
+    id responseObject = [self incrementHttpWithParamsSync:keys error:error];
+    if (responseObject) {
+        int code = [[responseObject objectForKey:@"code"] intValue];
+        if (code == 0) {
+            return YES;
+        }
+        return NO;
+    }else {
+        return NO;
+    }
 }
 
 
@@ -205,7 +240,7 @@
 
 
 - (id)incrementHttpWithParamsSync:(NSDictionary *)dictionary error:(NSError *__autoreleasing *)error{
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
     NSString *string = [urlPath stringByAppendingString:@"/inc"];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"PUT" urlString:string parameters:dictionary error:error];
     if (error) {
@@ -216,7 +251,9 @@
     int code = [[responseObject objectForKey:@"code"] intValue];
     NSString *message = [responseObject objectForKey:@"message"];
     if (code != 0 && message) {
-        *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
+        if (error) {
+            *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
+        }
         return nil;
     }
     return responseObject;
@@ -231,7 +268,7 @@
         block(NO, error);
         return;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
     NSString *string = [urlPath stringByAppendingString:@"/inc"];
     
     [HttpRequestManager updateObjectWithUrlPath:string parameters:dictionary success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -318,12 +355,14 @@
 - (BOOL)save:(NSError *__autoreleasing *)error {
     
     if (!_className) {
-        *error = [NSError errorWithDomain:@"without className" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without className"}];
+        if (error) {
+            *error = [NSError errorWithDomain:@"without className" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without className"}];
+        }
         return NO;
     }
     NSString *urlPath;
     if (_objectId) {
-        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className,@"id":_objectId}];
+        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className,@"_id":_objectId}];
         id responseObject = [HttpRequestManager synchronousWithMethod:@"PUT" urlString:urlPath parameters:_dictionary error:error];
         if (error) {
             if (*error) {
@@ -381,7 +420,7 @@
     NSString *urlPath;
     if (_objectId) {
         //更新
-        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"id":_objectId}];
+        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
         [HttpRequestManager updateObjectWithUrlPath:urlPath parameters:_dictionary success:^(AFHTTPRequestOperation *operation, id responseObject) {
             block(YES, nil);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -398,7 +437,7 @@
         [HttpRequestManager postObjectWithoutDataWithUrlPath:urlPath parameters:_dictionary success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSDictionary *dictionary = [responseObject objectForKey:@"data"];
             if (dictionary) {
-                self.objectId = [dictionary objectForKey:@"id"];
+                self.objectId = [dictionary objectForKey:@"_id"];
             }
             block(YES, nil);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -417,12 +456,16 @@
 
 - (JBObject *)fetch:(NSError *__autoreleasing *)error {
     if (!_objectId) {
-        *error = [NSError errorWithDomain:@"without id" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without id"}];
+        if (error) {
+            *error = [NSError errorWithDomain:@"without id" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without id"}];
+        }
         return nil;
     }
     
     if (!_className) {
-        *error = [NSError errorWithDomain:@"without className" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without className"}];
+        if (error) {
+            *error = [NSError errorWithDomain:@"without className" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without className"}];
+        }
         return nil;
     }
     NSString *urlPath = [NSString stringWithFormat:@"object/%@/%@", _className, _objectId];
@@ -458,7 +501,7 @@
         block(nil, error);
         return;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
     [HttpRequestManager getObjectWithUrlPath:urlPath parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         JBObject *object = [[JBObject alloc] initWithDictionary:responseObject];
         block(object, nil);
@@ -475,14 +518,20 @@
 
 - (BOOL)delete:(NSError *__autoreleasing *)error {
     if (!_objectId) {
-        *error = [NSError errorWithDomain:@"without id" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without id"}];
+        if (error) {
+            *error = [NSError errorWithDomain:@"without id" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without id"}];
+        }
+        
         return NO;
     }
     if (!_className) {
-        *error = [NSError errorWithDomain:@"without className" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without className"}];
+        if (error) {
+            *error = [NSError errorWithDomain:@"without className" code:JBError_NO_CLASSNAME userInfo:@{NSLocalizedDescriptionKey:@"without className"}];
+        }
+        
         return NO;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"DELETE" urlString:urlPath parameters:_dictionary error:error];
     if (error) {
         if (*error) {
@@ -516,7 +565,7 @@
         block(NO, error);
         return;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
     [HttpRequestManager deleteObjectWithUrlPath:urlPath queryParam:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         block(YES, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

@@ -62,7 +62,7 @@
  Increments the given key by 1.
  @param key The key.
  */
-- (void)incrementKey:(NSString *)key error:(NSError **)error;
+- (BOOL)incrementKey:(NSString *)key error:(NSError **)error;
 
 - (void)incrementKeyInBackground:(NSString *)key block:(JBBooleanResultBlock)block;
 
@@ -71,14 +71,14 @@
  @param key The key.
  @param amount The amount to increment.
  */
-- (void)incrementKey:(NSString *)key byAmount:(NSNumber *)amount error:(NSError **)error;
+- (BOOL)incrementKey:(NSString *)key byAmount:(NSNumber *)amount error:(NSError **)error;
 
 - (void)incrementKeyInBackground:(NSString *)key byAmount:(NSNumber *)amount block:(JBBooleanResultBlock)block;
 
 /*!
  Increments the given keys (NSDictionary).
  */
-- (void)incrementKeys:(NSDictionary *)keys error:(NSError **)error;
+- (BOOL)incrementKeys:(NSDictionary *)keys error:(NSError **)error;
 
 - (void)incrementKeysInBackground:(NSDictionary *)keys block:(JBBooleanResultBlock)block;
 

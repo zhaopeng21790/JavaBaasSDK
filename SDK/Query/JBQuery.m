@@ -83,34 +83,42 @@
     NSMutableDictionary *param = [self getQueryConditions];
     NSError *tempError = [self checkClassName];
     if (tempError) {
-        *error = tempError;
+        if (error) {
+            *error = tempError;
+        }
         return nil;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":self.className}];
-    id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
-    if (error) {
-        if (*error) {
+    
+    if (self.className) {
+        NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":self.className}];
+        id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
+        if (error) {
+            if (*error) {
+                return nil;
+            }
+        }
+        int code = [[responseObject objectForKey:@"code"] intValue];
+        NSString *message = [responseObject objectForKey:@"message"];
+        if (code != 0 && message) {
+            if (error) {
+                *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
+            }
             return nil;
         }
-    }
-    int code = [[responseObject objectForKey:@"code"] intValue];
-    NSString *message = [responseObject objectForKey:@"message"];
-    if (code != 0 && message) {
+        NSArray *jsonArray = (NSArray *)responseObject;
+        NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:jsonArray.count];
+        for (NSDictionary *dict in jsonArray) {
+            JBObject *object = [[JBObject alloc] initWithDictionary:dict];
+            [mutableArray addObject:object];
+        }
+        NSArray *array = [NSArray arrayWithArray:mutableArray];
+        return array;
+    }else {
         if (error) {
-            *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
+            *error = [self checkClassName];;
         }
         return nil;
     }
-    NSArray *jsonArray = (NSArray *)responseObject;
-    NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:jsonArray.count];
-    for (NSDictionary *dict in jsonArray) {
-        JBObject *object = [[JBObject alloc] initWithDictionary:dict];
-        [mutableArray addObject:object];
-    }
-    NSArray *array = [NSArray arrayWithArray:mutableArray];
-    return array;
-    
-    
 }
 
 - (void)findObjectsInBackgroundWithBlock:(JBArrayResultBlock)block {
@@ -157,7 +165,7 @@
 + (JBUser *)getUserObjectWithId:(NSString *)objectId error:(NSError *__autoreleasing *)error {
     JBQuery *query = [JBQuery queryWithClassName:@"_User"];
     NSMutableDictionary *param = [query getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":@"_User", @"id":objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":@"_User", @"_id":objectId}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
     if (error) {
         if (*error) {
@@ -185,11 +193,13 @@
     query.className = objectClass;
     NSError *tempError = [query checkClassName];
     if (tempError) {
-        *error = tempError;
+        if (error) {
+            *error = tempError;
+        }
         return nil;
     }
     NSMutableDictionary *param = [query getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":query.className, @"id":objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":query.className, @"_id":objectId}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
     if (error) {
         if (*error) {
@@ -219,7 +229,7 @@
         return ;
     }
     NSMutableDictionary *param = [self getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":self.className, @"id":objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":self.className, @"_id":objectId}];
     [HttpRequestManager getObjectWithUrlPath:urlPath parameters:param success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *dict = responseObject;
         JBObject *object = [[JBObject alloc] initWithDictionary:dict];
@@ -239,7 +249,9 @@
 - (NSInteger)countObjects:(NSError *__autoreleasing *)error {
     NSError *tempError = [self checkClassName];
     if (tempError) {
-        *error = tempError;
+        if (error) {
+            *error = tempError;
+        }
         return 0;
     }
     NSMutableDictionary *param = [self getQueryConditions];
