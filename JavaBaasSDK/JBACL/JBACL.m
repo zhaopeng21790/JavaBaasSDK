@@ -42,7 +42,6 @@ static JBACL *_acl;
         [dict setValue:@(allowed) forKey:@"read"];
         [_aclDictionary setObject:dict forKey:@"*"];
     }
-    
 }
 
 - (void)setPublicWriteAccess:(BOOL)allowed {

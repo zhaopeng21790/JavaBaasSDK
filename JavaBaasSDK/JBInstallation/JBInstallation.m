@@ -8,6 +8,7 @@
 
 #import "JBInstallation.h"
 #import <UIKit/UIKit.h>
+#import "JBCacheManager.h"
 
 @implementation JBInstallation
 
@@ -28,6 +29,7 @@ static JBInstallation *_jbInstallation;
     dispatch_once(&onceToken, ^{
         _jbInstallation = [[super allocWithZone:NULL] init];
     });
+    
     return _jbInstallation;
 }
 
@@ -35,7 +37,27 @@ static JBInstallation *_jbInstallation;
     return [JBInstallation currentInstallation];
 }
 
-
++ (void)getCurrentInstallationIdBlock:(JBIdResultBlock)block {
+    JBInstallation *installation = [JBInstallation currentInstallation];
+    NSString *objectId = [JBCacheManager readJBInstallation];
+    if (objectId) {
+        installation.objectId = objectId;
+        block(objectId, nil);
+    }else {
+        JBObject *object = [JBObject objectWithClassName:@"_Installation"];
+        [object setObject:installation.deviceToken forKey:@"deviceToken"];
+        [object setObject:installation.deviceType forKey:@"deviceType"];
+        [object saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            if (succeeded) {
+                installation.objectId = object.objectId;
+                [JBCacheManager writeJBInstallation:installation.objectId];
+                block(installation.objectId, nil);
+            }else {
+                block(nil, error);
+            }
+        }];
+    }
+}
 
 
 @end

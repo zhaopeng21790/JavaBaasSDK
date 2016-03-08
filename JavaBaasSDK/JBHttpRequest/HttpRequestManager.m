@@ -152,8 +152,6 @@
         urlString = [NSString stringWithFormat:@"%@/api/%@", baseUrl, urlPath];
     }
     
-    NSLog(@"%@", urlString);
-    
     NSString *string = [urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];

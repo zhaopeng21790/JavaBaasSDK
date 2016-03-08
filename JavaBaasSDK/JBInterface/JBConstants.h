@@ -18,12 +18,6 @@
 #define MyLog(...)
 #endif
 
-
-#define True @"true"
-#define False @"false"
-
-
-
 /**
  缓存策略
  */
@@ -47,9 +41,6 @@ typedef enum {
     JBError_COUNT_ZORE = 5003,//count=0
     JBError_PARAMS_ERROR = 5004, //参数类型错误
     JBError_INTERNET_ERROR = 5005, //网络或者URL错误
-    JBError_NICKNAME_ALREADY_EXIST = 5006 //nickname 已经存在
-
-
 }JBErrorCode;
 
 

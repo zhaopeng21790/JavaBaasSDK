@@ -18,4 +18,7 @@
 
 + (instancetype)currentInstallation;
 
++ (void)getCurrentInstallationIdBlock:(JBIdResultBlock)block;
+
+
 @end

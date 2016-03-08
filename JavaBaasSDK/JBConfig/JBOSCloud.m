@@ -69,7 +69,7 @@ static JBOSCloud *_jbOSCloud;
             [JBCacheManager writeJBInstallation:installation.objectId];
         }];
     }
-
+    
     [self getServerTimeBlock:^(id object, NSError *error) {
         if (!error) {
             NSNumber *num = (NSNumber *)object;
@@ -81,7 +81,6 @@ static JBOSCloud *_jbOSCloud;
             [JBCacheManager writeJBServerTime:str];
         }
     }];
-    
 }
 
 //获取服务器时间

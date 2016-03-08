@@ -102,7 +102,7 @@
     }
     
     if (self.className) {
-        NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":self.className}];
+        NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":self.className, @"find":@(YES)}];
         id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
         if (error) {
             if (*error) {
@@ -140,7 +140,8 @@
         return ;
     }
     NSMutableDictionary *param = [self getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":self.className}];
+    
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":self.className, @"find":@(YES)}];
     
     [HttpRequestManager queryObjectWithUrlPath:urlPath queryParam:param success:^(AFHTTPRequestOperation *operation, id responseObject) {
         BOOL temp = NO;
@@ -177,7 +178,7 @@
 + (JBUser *)getUserObjectWithId:(NSString *)objectId error:(NSError *__autoreleasing *)error {
     JBQuery *query = [JBQuery queryWithClassName:@"_User"];
     NSMutableDictionary *param = [query getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":@"_User", @"_id":objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":@"_User", @"_id":objectId,@"find":@(YES)}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
     if (error) {
         if (*error) {
@@ -211,7 +212,7 @@
         return nil;
     }
     NSMutableDictionary *param = [query getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":query.className, @"_id":objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":query.className, @"_id":objectId,@"find":@(YES)}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
     if (error) {
         if (*error) {
@@ -241,7 +242,7 @@
         return ;
     }
     NSMutableDictionary *param = [self getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":self.className, @"_id":objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":self.className, @"_id":objectId,@"find":@(YES)}];
     [HttpRequestManager getObjectWithUrlPath:urlPath parameters:param success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *dict = responseObject;
         JBObject *object = [[JBObject alloc] initWithDictionary:dict];
@@ -267,7 +268,7 @@
         return 0;
     }
     NSMutableDictionary *param = [self getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":[NSString stringWithFormat:@"%@/count", self.className]}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":[NSString stringWithFormat:@"%@/count", self.className]}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"GET" urlString:urlPath parameters:param error:error];
     if (error) {
         if (*error) {
@@ -292,7 +293,7 @@
         return ;
     }
     NSMutableDictionary *param = [self getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":[NSString stringWithFormat:@"%@/count", self.className]}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":[NSString stringWithFormat:@"%@/count", self.className]}];
     [HttpRequestManager queryObjectWithUrlPath:urlPath queryParam:param success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSInteger count = [[[responseObject objectForKey:@"data"] objectForKey:@"count"] integerValue];
         block(count, nil);
@@ -310,7 +311,7 @@
         return ;
     }
     NSMutableDictionary *param = [self getQueryConditions];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":[NSString stringWithFormat:@"%@/deleteByQuery", self.className]}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":[NSString stringWithFormat:@"%@/deleteByQuery", self.className]}];
     [HttpRequestManager deleteObjectWithUrlPath:urlPath queryParam:param success:^(AFHTTPRequestOperation *operation, id responseObject) {
         block(YES, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -361,7 +362,17 @@
 - (NSString *)getWhereString:(id)value {
     NSString *string;
     if ([value isKindOfClass:[NSNumber class]]) {
-        string = [NSString stringWithFormat:@"%@", value];
+        NSNumber *num = (NSNumber *)value;
+        if ([num isKindOfClass:NSClassFromString(@"__NSCFBoolean")]) {
+            if (num.boolValue) {
+                string = @"true";
+            }else {
+                string = @"false";
+            }
+        }else {
+            string = [NSString stringWithFormat:@"%@", value];
+        }
+        
     }else if ([value isKindOfClass:[NSArray class]]) {
         NSArray *array = (NSArray *)value;
         NSMutableString *mutableString = [[NSMutableString alloc] init];
@@ -417,24 +428,20 @@
     [_dictionary setObject:dict_1 forKey:key];
 }
 
-
-
-
 - (void)whereKey:(NSString *)key equalTo:(id)value {
     [self queryAssertValidEqualityClauseClass:value];
     NSString *string = [self getWhereString:value];
     [self coverConditions:key value:string keyValue2:@"equal"];
 }
 
-
 - (void)whereKeyExists:(NSString *)key {
-    NSString *string = [NSString stringWithFormat:@"{\"$exists\":%@}", True ];
+    NSString *string = [NSString stringWithFormat:@"{\"$exists\":%@}", @"true" ];
     [self coverConditions:key value:string keyValue2:@"$exists"];
     
 }
 
 - (void)whereKeyDoesNotExist:(NSString *)key {
-    NSString *string = [NSString stringWithFormat:@"{\"$exists\":%@}", False ];
+    NSString *string = [NSString stringWithFormat:@"{\"$exists\":%@}", @"false" ];
     [self coverConditions:key value:string  keyValue2:@"$exists"];
 }
 
@@ -488,9 +495,34 @@
 }
 
 
-- (void)whereKey:(NSString *)key containsString:(NSString *)value {
-    NSAssert(0, @"赞未实现");
+- (void)whereKey:(NSString *)key matchesRegex:(NSString *)regex {
+    NSString *string = [NSString stringWithFormat:@"{\"$regex\":\"%@\"}", regex];
+    [self coverConditions:key value:string keyValue2:@"$regex"];
 }
+
+- (void)whereKey:(NSString *)key matchesRegex:(NSString *)regex modifiers:(NSString *)modifiers {
+    NSString *string = [NSString stringWithFormat:@"{\"$regex\":\"%@\",\"$options\":\"%@\"}", regex, modifiers];
+    [self coverConditions:key value:string keyValue2:@"$regex"];
+}
+
+
+- (void)whereKey:(NSString *)key containsString:(NSString *)substring {
+    NSString *string = [NSString stringWithFormat:@"{\"$regex\":\".*%@.*\"}", substring];
+    [self coverConditions:key value:string keyValue2:@"$regex"];
+}
+
+- (void)whereKey:(NSString *)key hasPrefix:(NSString *)prefix {
+    NSString *string = [NSString stringWithFormat:@"{\"$regex\":\"^%@.*\"}", prefix];
+    [self coverConditions:key value:string keyValue2:@"$regex"];
+}
+
+
+- (void)whereKey:(NSString *)key hasSuffix:(NSString *)suffix {
+    NSString *string = [NSString stringWithFormat:@"{\"$regex\":\".*%@$\"}", suffix];
+    [self coverConditions:key value:string keyValue2:@"$regex"];
+}
+
+
 
 - (void)whereKey:(NSString *)key matchesQuery:(JBQuery *)query {
     NSString *deleteString = @"{\"$and\":[";

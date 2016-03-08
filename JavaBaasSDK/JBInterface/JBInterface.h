@@ -10,7 +10,7 @@
 
 @interface JBInterface : NSObject
 
-+ (NSString *)getInterfaceWithPragma:(NSDictionary *)dict;
++ (NSString *)getInterfaceWithParam:(NSDictionary *)dict;
 
 
 @end

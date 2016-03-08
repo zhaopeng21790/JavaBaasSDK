@@ -17,58 +17,58 @@
 /** @name Creating an ACL */
 
 /*!
- Creates an ACL with no permissions granted.
+ 创建一个ACL
  */
 + (JBACL *)ACL;
 
-/** @name Controlling Public Access */
 
-/*!
- Set whether the public is allowed to read this object.
- @param allowed allowed or not
+/**
+ *  设置全局可读权限
  */
-
 - (void)setPublicReadAccess:(BOOL)allowed;
 
 
 
-/*!
- Set whether the public is allowed to write this object.
- @param allowed allowed or not
+/**
+ *  设置全局可写权限
  */
 - (void)setPublicWriteAccess:(BOOL)allowed;
 
 
 
 
-/*!
- Set whether the given user id is allowed to read this object.
- @param allowed allowed or not
- @param userId the JBUser's objectId
+/**
+ *  针对某个用户设置可读权限
+ *
+ *  @param allowed yes:可读
+ *  @param userId  用户id
  */
 - (void)setReadAccess:(BOOL)allowed forUserId:(NSString *)userId;
 
-/*!
- Set whether the given user id is allowed to write this object.
- @param allowed allowed or not
- @param userId the JBUser's objectId
+/**
+ *  针对某个用户设置可写权限
+ *
+ *  @param allowed yes:可写
+ *  @param userId  用户id
  */
 - (void)setWriteAccess:(BOOL)allowed forUserId:(NSString *)userId;
 
 
-/*!
- Set whether the given user is allowed to read this object.
- @param allowed allowed or not
- @param user the JBUser
+/**
+ *  针对某个用户设置可读权限
+ *
+ *  @param allowed yes:可读
+ *  @param userId  用户JBUser
  */
 - (void)setReadAccess:(BOOL)allowed forUser:(JBUser *)user;
 
 
 
-/*!
- Set whether the given user is allowed to write this object.
- @param allowed allowed or not
- @param user the JBUser
+/**
+ *  针对某个用户设置可写权限
+ *
+ *  @param allowed yes:可读
+ *  @param userId  用户JBUser
  */
 - (void)setWriteAccess:(BOOL)allowed forUser:(JBUser *)user;
 

@@ -11,6 +11,7 @@
 #import "JBInterface.h"
 #import "HttpRequestManager.h"
 #import "JBInterface.h"
+#import "JBUser.h"
 
 @implementation JBObject {
     NSMutableDictionary *_dictionary;
@@ -23,10 +24,8 @@
         if (dictionay) {
             _dictionary = nil;
             _dictionary = [[NSMutableDictionary alloc] initWithDictionary:dictionay];
-            long long createdaAt = [[dictionay objectForKey:@"createdAt"] longLongValue];
-            _createdAt = [self getDateWithTime:createdaAt];
-            long long updatedAt = [[dictionay objectForKey:@"updatedAt"] longLongValue];
-            _updatedAt = [self getDateWithTime:updatedAt];
+            _createdAt = [self getDateWithTime:[[dictionay objectForKey:@"createdAt"] longLongValue]];
+            _updatedAt = [self getDateWithTime:[[dictionay objectForKey:@"updatedAt"] longLongValue]];
             _objectId = [dictionay objectForKey:@"_id"];
             _className = [dictionay objectForKey:@"className"];
             NSDictionary *aclDictionary = [dictionay objectForKey:@"acl"];
@@ -88,14 +87,15 @@
 
 + (instancetype)objectWithoutDataWithClassName:(NSString *)className objectId:(NSString *)objectId {
     JBObject *object = [[JBObject alloc] init];
+    object.className = className;
+    [object setValue:@"Pointer" forKey:@"__type"];
     if (className && objectId) {
-        [object setValue:@"Pointer" forKey:@"__type"];
         [object setValue:objectId forKey:@"_id"];
-        object.className = className;
         object.objectId = objectId;
         return object;
+    }else {
+        return object;
     }
-    return nil;
 }
 
 - (void)setClassName:(NSString *)className {
@@ -118,7 +118,9 @@
 #pragma mark- increment
 
 - (BOOL)isIntType:(NSNumber *)amount {
-    if (strcmp([amount objCType], @encode(int)) == 0 || strcmp([amount objCType], @encode(NSInteger)) == 0 || strcmp([amount objCType], @encode(int64_t)) == 0) {
+    NSArray *intArray = @[@"i",@"s",@"l",@"q",@"I",@"S",@"L",@"Q"];
+    NSString *intType = [NSString stringWithFormat:@"%s", amount.objCType];
+    if ([intArray containsObject:intType]) {
         return YES;
     }
     return NO;
@@ -240,7 +242,7 @@
 
 
 - (id)incrementHttpWithParamsSync:(NSDictionary *)dictionary error:(NSError *__autoreleasing *)error{
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className, @"_id":_objectId}];
     NSString *string = [urlPath stringByAppendingString:@"/inc"];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"PUT" urlString:string parameters:dictionary error:error];
     if (error) {
@@ -268,7 +270,7 @@
         block(NO, error);
         return;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className, @"_id":_objectId}];
     NSString *string = [urlPath stringByAppendingString:@"/inc"];
     
     [HttpRequestManager updateObjectWithUrlPath:string parameters:dictionary success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -295,12 +297,18 @@
 
 - (void)setValue:(id)value forKey:(NSString *)key {
     if (![value isKindOfClass:[JBObject class]]) {
-        [_dictionary setValue:value forKey:key];
+        if ([value isKindOfClass:[NSDate class]]) {
+            NSDate *date = (NSDate *)value;
+            [_dictionary setValue:@(date.timeIntervalSince1970*1000) forKey:key];
+        }else {
+            [_dictionary setValue:value forKey:key];
+        }
     }else {
         NSDictionary *dict = [NSMutableDictionary dictionary];
         if ([[value objectForKey:@"__type"] isEqualToString:@"File"]) {
             [dict setValue:@"File" forKey:@"__type"];
             [dict setValue:[value objectForKey:@"_id"] forKey:@"_id"];
+            [dict setValue:[value objectForKey:@"url"] forKey:@"url"];
         }else if ([[value objectForKey:@"__type"] isEqualToString:@"Pointer"]) {
             [dict setValue:@"Pointer" forKey:@"__type"];
             [dict setValue:[value objectForKey:@"className"] forKey:@"className"];
@@ -314,7 +322,12 @@
 
 - (void)setObject:(id)object forKey:(NSString *)key {
     if (![object isKindOfClass:[JBObject class]]) {
-        [_dictionary setValue:object forKey:key];
+        if ([object isKindOfClass:[NSDate class]]) {
+            NSDate *date = (NSDate *)object;
+            [_dictionary setValue:@(date.timeIntervalSince1970*1000) forKey:key];
+        }else {
+            [_dictionary setValue:object forKey:key];
+        }
     }else {
         NSDictionary *dict = [NSMutableDictionary dictionary];
         NSString *_id = [object objectForKey:@"_id"];
@@ -362,7 +375,7 @@
     }
     NSString *urlPath;
     if (_objectId) {
-        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className,@"_id":_objectId}];
+        urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className,@"_id":_objectId}];
         id responseObject = [HttpRequestManager synchronousWithMethod:@"PUT" urlString:urlPath parameters:_dictionary error:error];
         if (error) {
             if (*error) {
@@ -378,12 +391,16 @@
                 }
                 return NO;
             }
+            if ([_className isEqualToString:@"_User"]) {
+                JBUser *user = (JBUser *)self;
+                [JBUser changeCurrentUser:user save:YES];
+            }
             return YES;
         }else {
             return NO;
         }
     }else {
-        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className}];
+        urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className}];
         id responseObject = [HttpRequestManager synchronousWithMethod:@"POST" urlString:urlPath parameters:_dictionary error:error];
         if (error) {
             if (*error) {
@@ -420,8 +437,12 @@
     NSString *urlPath;
     if (_objectId) {
         //更新
-        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
+        urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className, @"_id":_objectId}];
         [HttpRequestManager updateObjectWithUrlPath:urlPath parameters:_dictionary success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            if ([_className isEqualToString:@"_User"]) {
+                JBUser *user = (JBUser *)self;
+                [JBUser changeCurrentUser:user save:YES];
+            }
             block(YES, nil);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             if (operation.responseObject) {
@@ -433,7 +454,7 @@
             }
         }];
     }else {
-        urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className}];
+        urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className}];
         [HttpRequestManager postObjectWithoutDataWithUrlPath:urlPath parameters:_dictionary success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSDictionary *dictionary = [responseObject objectForKey:@"data"];
             if (dictionary) {
@@ -501,7 +522,7 @@
         block(nil, error);
         return;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className, @"_id":_objectId}];
     [HttpRequestManager getObjectWithUrlPath:urlPath parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         JBObject *object = [[JBObject alloc] initWithDictionary:responseObject];
         block(object, nil);
@@ -531,7 +552,7 @@
         
         return NO;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className, @"_id":_objectId}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"DELETE" urlString:urlPath parameters:_dictionary error:error];
     if (error) {
         if (*error) {
@@ -565,7 +586,7 @@
         block(NO, error);
         return;
     }
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":_className, @"_id":_objectId}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":_className, @"_id":_objectId}];
     [HttpRequestManager deleteObjectWithUrlPath:urlPath queryParam:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         block(YES, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

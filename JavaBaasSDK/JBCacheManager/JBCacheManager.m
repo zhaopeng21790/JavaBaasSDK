@@ -52,7 +52,7 @@ static JBCacheManager *_cacheManager;
     [[NSFileManager defaultManager] createDirectoryAtPath:filePath withIntermediateDirectories:YES attributes:nil error:nil];
     [[NSFileManager defaultManager] createFileAtPath:dataPath contents:nil attributes:nil];
     if (data) {
-        //数组转位nsdata防止油NSNull时写入文件不成功
+        //数组转为NSData防止有NSNull时写入文件不成功
         NSData *dataArray = [NSKeyedArchiver archivedDataWithRootObject:data];
         if (dataArray) {
             [dataArray writeToFile:dataPath atomically:YES];
@@ -147,7 +147,7 @@ static JBCacheManager *_cacheManager;
         jbuser.phone = [jbuser objectForKey:@"phone"];
         jbuser.email = [jbuser objectForKey:@"email"];
         if ([jbuser objectForKey:@"auth"]) {
-            jbuser.auth = [[JBObject alloc] initWithDictionary:[jbuser objectForKey:@"auth"]];
+            jbuser.auth = [jbuser objectForKey:@"auth"];
         }
         return jbuser;
     }else {

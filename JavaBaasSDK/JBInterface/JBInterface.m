@@ -10,42 +10,52 @@
 
 @implementation JBInterface
 
-+ (NSString *)getInterfaceWithPragma:(NSDictionary *)dict {
++ (NSString *)getInterfaceWithParam:(NSDictionary *)dict {
     
     NSString *string;
     NSString *className = [dict objectForKey:@"className"];
     NSString *objectId = [dict objectForKey:@"_id"];
-    
-    if ([className isEqualToString:@"_User"]) {
-        if (objectId) {
-            string = [NSString stringWithFormat:@"user/%@", objectId];
-        }else {
-            string = @"user/";
-        }
-    }else if ([className isEqualToString:@"_Installation"]) {
-        if (objectId) {
-            string = [NSString stringWithFormat:@"user/%@", objectId];
-        }else {
-            string = @"installation/";
-        }
-    }else if(className){
-        if (objectId) {
-            string = [NSString stringWithFormat:@"object/%@/%@",className ,objectId];
-        }else {
-            string = [NSString stringWithFormat:@"object/%@",className];
-        }
-    }
-    
+    BOOL find = [[dict objectForKey:@"find"] boolValue];
     NSString *authType = [dict objectForKey:@"authType"];
     NSString *platform = [dict objectForKey:@"platform"];
+    
     if (platform) {
         if (objectId) {
             string = [NSString stringWithFormat:@"user/%@/%@/%@", objectId, authType,platform];
         }
+    }else {
+        if (find) {
+            if (objectId) {
+                string = [NSString stringWithFormat:@"object/%@/%@",className ,objectId];
+            }else {
+                string = [NSString stringWithFormat:@"object/%@",className];
+            }
+        }else {
+            if ([className isEqualToString:@"_User"]) {
+                if (objectId) {
+                    string = [NSString stringWithFormat:@"user/%@", objectId];
+                }else {
+                    string = @"user/";
+                }
+            }else if ([className isEqualToString:@"_Installation"]) {
+                if (objectId) {
+                    string = [NSString stringWithFormat:@"installation/%@", objectId];
+                }else {
+                    string = @"installation/";
+                }
+            }else if(className){
+                if (objectId) {
+                    string = [NSString stringWithFormat:@"object/%@/%@",className ,objectId];
+                }else {
+                    string = [NSString stringWithFormat:@"object/%@",className];
+                }
+            }
+        }
+        
     }
-    
     return string;
 }
+
 
 
 @end

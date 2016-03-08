@@ -13,27 +13,17 @@
 
 @interface JBUser : JBObject
 
-
-/// The username for the JBUser.
 @property (nonatomic, strong) NSString *username;
 
-/**
- The password for the JBUser. This will not be filled in from the server with
- the password. It is only meant to be set.
- */
 @property (nonatomic, strong) NSString *password;
 
-/// The phone for the JBUser.
 @property (nonatomic, strong) NSString *phone;
 
-/// The email for the JBUser.
 @property (nonatomic, strong) NSString *email;
 
-/// The sessionToken for the JBUser.
 @property (nonatomic, strong) NSString *sessionToken;
-
-// The auth for the JBUser
-@property (nonatomic, strong) JBObject *auth;
+//用户授权信息
+@property (nonatomic, strong) NSDictionary *auth;
 
 
 + (JBUser *)user;
@@ -45,7 +35,7 @@
  *
  *  @return <#return value description#>
  */
-- (id)signUp:(NSError **)error;
+- (BOOL)signUp:(NSError **)error;
 
 
 /**
@@ -53,7 +43,7 @@
  *
  *  @param block block description
  */
-- (void)signUpInBackGroundWithBlock:(JBIdResultBlock)block;
+- (void)signUpInBackgroundWithBlock:(JBBooleanResultBlock)block;
 
 /**
  *  更新密码(同步)
@@ -107,11 +97,9 @@
 /**
  *  第三方登录（同步）
  *
- *  @param auth     第三方授权信息
+ *  @param auth     第三方授权信息key分别为：@"accessToken"，@"uid"
  *  @param platform 第三方平台
- *  @param error    <#error description#>
  *
- *  @return <#return value description#>
  */
 + (id)logInWithAuthData:(NSDictionary *)auth authType:(JBPlatform)platform error:(NSError **)error;
 
@@ -180,6 +168,14 @@
  */
 + (JBUser *)currentUser;
 
+
+/*!
+ *  @param newUser 新的 JBUser 实例
+ *  @param save 是否需要把 newUser 保存到本地缓存。如果 newUser==nil && save==YES，则会清除本地缓存
+ * Note: 请注意不要随意调用这个函数！
+ */
++(void)changeCurrentUser:(JBUser *)newUser
+                    save:(BOOL)save;
 
 
 

@@ -9,6 +9,7 @@ Pod::Spec.new do |s|
   s.license      = "MIT"
   s.author       = { "赵朋" => "185403812@qq.com" }
   s.platform     = :ios, "6.0"
+  #s.public_header_files = "JavaBaasSDK/JavaBaas.h"
   s.source       = { :git => "https://github.com/zhaopeng21790/JavaBaasSDK.git",:tag => s.version}
   s.source_files  = "JavaBaasSDK","JavaBaasSDK/**/*.{h,m}"
   #s.exclude_files = "Classes/Exclude"

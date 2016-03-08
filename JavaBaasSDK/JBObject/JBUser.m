@@ -15,6 +15,8 @@
 
 @implementation JBUser
 
+static JBUser  *_user;
+
 + (instancetype)objectWithoutDataWithObjectId:(NSString *)objectId {
     JBUser *object = [[JBUser alloc] init];
     object.objectId = objectId;
@@ -62,10 +64,10 @@
     }
 }
 
-- (void)setAuth:(JBObject *)auth {
+- (void)setAuth:(NSDictionary *)auth {
     _auth = auth;
     if (auth) {
-        [self setObject:[auth dictionaryForObject] forKey:@"auth"];
+        [self setObject:auth forKey:@"auth"];
     }
 }
 
@@ -76,13 +78,13 @@
 }
 
 //注册
-- (id)signUp:(NSError *__autoreleasing *)error {
-    NSString *urlString = [JBInterface getInterfaceWithPragma:@{@"className":@"_User"}];
+- (BOOL)signUp:(NSError *__autoreleasing *)error {
+    NSString *urlString = [JBInterface getInterfaceWithParam:@{@"className":@"_User"}];
     NSDictionary *parameters = [self dictionaryForObject];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"POST" urlString:urlString parameters:parameters error:error];
     if (error) {
         if (*error) {
-            return nil;
+            return NO;
         }
     }
     if (responseObject) {
@@ -92,38 +94,35 @@
             if (error) {
                 *error = [NSError errorWithDomain:message code:code userInfo:@{NSLocalizedDescriptionKey:message}];
             }
-            return nil;
+            return NO;
         }
         [self setValue:[[responseObject objectForKey:@"data"] objectForKey:@"sessionToken"] forKey:@"sessionToken"];
         [self setValue:[[responseObject objectForKey:@"data"] objectForKey:@"_id"] forKey:@"_id"];
         [self setValue:[[responseObject objectForKey:@"data"] objectForKey:@"createdAt"] forKey:@"createdAt"];
-        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:[self dictionaryForObject]];
-        return responseObject;
+        [JBUser changeCurrentUser:self save:YES];
+        return YES;
     }else {
-        return nil;
+        return NO;
     }
     
 }
 
-- (void)signUpInBackGroundWithBlock:(JBIdResultBlock)block {
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"className":@"_User"}];
+- (void)signUpInBackgroundWithBlock:(JBBooleanResultBlock)block {
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"className":@"_User"}];
     NSDictionary *parameters = [self dictionaryForObject];
     [HttpRequestManager postObjectWithoutDataWithUrlPath:urlPath parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [self setValue:[[responseObject objectForKey:@"data"] objectForKey:@"sessionToken"] forKey:@"sessionToken"];
         [self setValue:[[responseObject objectForKey:@"data"] objectForKey:@"_id"] forKey:@"_id"];
         [self setValue:[[responseObject objectForKey:@"data"] objectForKey:@"createdAt"] forKey:@"createdAt"];
-        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:[self dictionaryForObject]];
-        block(responseObject, nil);
+        [JBUser changeCurrentUser:self save:YES];
+        block(YES, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if (operation.responseObject) {
             int code = [[operation.responseObject objectForKey:@"code"] intValue];
-            if (code == 2010) {
-                code = JBError_NICKNAME_ALREADY_EXIST;
-            }
             NSError *customError = [NSError errorWithDomain:[operation.responseObject objectForKey:@"message"] code:code userInfo:operation.responseObject];
-            block(operation.responseObject, customError);
+            block(NO, customError);
         }else {
-            block(nil, error);
+            block(NO, error);
         }
     }];
 }
@@ -132,7 +131,7 @@
 - (BOOL)updatePassword:(NSString *)password newPassword:(NSString *)newPassword error:(NSError *__autoreleasing *)error {
     if (!self.objectId) {
         if (error) {
-             *error = [NSError errorWithDomain:@"without user id" code:JBError_NO_USER userInfo:@{NSLocalizedDescriptionKey:@"without user id"}];
+            *error = [NSError errorWithDomain:@"without user id" code:JBError_NO_USER userInfo:@{NSLocalizedDescriptionKey:@"without user id"}];
         }
         return NO;
     }
@@ -155,6 +154,9 @@
             }
             return NO;
         }
+        NSString *sessionToken = [[responseObject objectForKey:@"data"] objectForKey:@"sessionToken"];
+        [self setObject:sessionToken forKey:@"sessionToken"];
+        [JBUser changeCurrentUser:self save:YES];
         return YES;
     }else {
         return YES;
@@ -164,7 +166,7 @@
 - (void)updatePassword:(NSString *)password newPassword:(NSString *)newPassword block:(JBBooleanResultBlock)block {
     if (!self.objectId) {
         NSError *error = [NSError errorWithDomain:@"without user id" code:JBError_NO_USER userInfo:@{NSLocalizedDescriptionKey:@"without user id"}];
-        block(nil, error);
+        block(NO, error);
         return ;
     }
     NSString *urlString = [NSString stringWithFormat:@"user/%@/updatePassword", self.objectId];
@@ -174,16 +176,12 @@
     
     [HttpRequestManager updateObjectWithUrlPath:urlString parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSString *sessionToken = [[responseObject objectForKey:@"data"] objectForKey:@"sessionToken"];
-        JBUser *user = [[JBCacheManager sharedJBCacheManager] readJBUserCacheFile];
-        [user setObject:sessionToken forKey:@"sessionToken"];
-        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:[user dictionaryForObject]];
+        [self setObject:sessionToken forKey:@"sessionToken"];
+        [JBUser changeCurrentUser:self save:YES];
         block(YES, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if (operation.responseObject) {
             int code = [[operation.responseObject objectForKey:@"code"] intValue];
-            if (code == 2010) {
-                code = JBError_NICKNAME_ALREADY_EXIST;
-            }
             NSError *customError = [NSError errorWithDomain:[operation.responseObject objectForKey:@"message"] code:code userInfo:operation.responseObject];
             block(NO, customError);
         }else {
@@ -210,19 +208,21 @@
             }
             return nil;
         }
-        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:responseObject];
-        return [[JBUser alloc] initWithDictionary:responseObject];
+        JBUser *user = [[JBUser alloc] initWithDictionary:responseObject];
+        [JBUser changeCurrentUser:user save:YES];
+        return user;
     }else {
         return nil;
     }
 }
 
+
 + (void)logInWithUsernameInBackground:(NSString *)username password:(NSString *)password block:(JBUserResultBlock)block {
     NSString *baseUrl = [JBOSCloud getBaseUrlString];
     NSString *urlString = [NSString stringWithFormat:@"%@/api/user/login?username=%@&password=%@",baseUrl,username, password];
     [HttpRequestManager getObjectWithUrlString:urlString success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:responseObject];
         JBUser *user = [[JBUser alloc] initWithDictionary:responseObject];
+        [JBUser changeCurrentUser:user save:YES];
         block(user, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if (operation.responseObject) {
@@ -258,8 +258,9 @@
             }
             return nil;
         }
-        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:responseObject];
-        return [[JBUser alloc] initWithDictionary:responseObject];
+        JBUser *user = [[JBUser alloc] initWithDictionary:responseObject];
+        [JBUser changeCurrentUser:user save:YES];
+        return user;
     }else {
         return nil;
     }
@@ -271,8 +272,8 @@
     NSString *token = [auth objectForKey:@"accessToken"];
     NSString *uid = [auth objectForKey:@"uid"];
     [HttpRequestManager postObjectWithoutDataWithUrlPath:path parameters:@{@"accessToken":token, @"uid":uid} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:responseObject];
-        JBUser *user = [[JBUser alloc] initWithDictionary:responseObject];
+       JBUser *user = [[JBUser alloc] initWithDictionary:responseObject];
+        [JBUser changeCurrentUser:user save:YES];
         block(user, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if (operation.responseObject) {
@@ -295,7 +296,7 @@
         return NO;
     }
     NSString *plat = [self getPlatform:platform];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"authType":@"binding", @"_id":self.objectId,@"platform":plat}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"authType":@"binding", @"_id":self.objectId,@"platform":plat}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"POST" urlString:urlPath parameters:auth error:error];
     if (error) {
         if (*error) {
@@ -311,6 +312,19 @@
             }
             return NO;
         }
+        NSMutableDictionary *authDict ;
+        NSDictionary *dict = [self objectForKey:@"auth"];
+        if (dict) {
+            authDict = [NSMutableDictionary dictionaryWithDictionary:dict];
+        }else {
+            authDict = [NSMutableDictionary dictionary];
+        }
+        NSString *plat = [self getPlatform:platform];
+        
+        [authDict setValue:auth forKey:plat];
+        [self setObject:authDict forKey:@"auth"];
+        
+        [JBUser changeCurrentUser:self save:YES];
         return YES;
     }else {
         return NO;
@@ -324,8 +338,21 @@
         return ;
     }
     NSString *plat = [self getPlatform:platform];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"authType":@"binding", @"_id":self.objectId,@"platform":plat}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"authType":@"binding", @"_id":self.objectId,@"platform":plat}];
     [HttpRequestManager postObjectWithoutDataWithUrlPath:urlPath parameters:auth success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSMutableDictionary *authDict ;
+        NSDictionary *dict = [self objectForKey:@"auth"];
+        if (dict) {
+            authDict = [NSMutableDictionary dictionaryWithDictionary:dict];
+        }else {
+            authDict = [NSMutableDictionary dictionary];
+        }
+        NSString *plat = [self getPlatform:platform];
+        
+        [authDict setValue:auth forKey:plat];
+        [self setObject:authDict forKey:@"auth"];
+        
+        [JBUser changeCurrentUser:self save:YES];
         block(responseObject, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if (operation.responseObject) {
@@ -347,7 +374,7 @@
         return NO;
     }
     NSString *plat = [self getPlatform:platform];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"authType":@"release", @"_id":self.objectId,@"platform":plat}];
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"authType":@"release", @"_id":self.objectId,@"platform":plat}];
     id responseObject = [HttpRequestManager synchronousWithMethod:@"DELETE" urlString:urlPath parameters:nil error:error];
     if (error) {
         if (*error) {
@@ -364,6 +391,18 @@
             
             return NO;
         }
+        NSMutableDictionary *authDict ;
+        NSDictionary *dict = [self objectForKey:@"auth"];
+        if (dict) {
+            authDict = [NSMutableDictionary dictionaryWithDictionary:dict];
+        }else {
+            authDict = [NSMutableDictionary dictionary];
+        }
+        NSString *plat = [self getPlatform:platform];
+        
+        [authDict removeObjectForKey:plat];
+        [self setObject:authDict forKey:@"auth"];
+        [JBUser changeCurrentUser:self save:YES];
         return YES;
     }else {
         return NO;
@@ -377,9 +416,22 @@
         return ;
     }
     NSString *plat = [self getPlatform:platform];
-    NSString *urlPath = [JBInterface getInterfaceWithPragma:@{@"authType":@"release", @"_id":self.objectId,@"platform":plat}];
-    
+    NSString *urlPath = [JBInterface getInterfaceWithParam:@{@"authType":@"release", @"_id":self.objectId,@"platform":plat}];
     [HttpRequestManager deleteObjectWithUrlPath:urlPath queryParam:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSMutableDictionary *authDict ;
+        NSDictionary *dict = [self objectForKey:@"auth"];
+        if (dict) {
+            authDict = [NSMutableDictionary dictionaryWithDictionary:dict];
+        }else {
+            authDict = [NSMutableDictionary dictionary];
+        }
+        NSString *plat = [self getPlatform:platform];
+        
+        [authDict removeObjectForKey:plat];
+        [self setObject:authDict forKey:@"auth"];
+
+        
+        [JBUser changeCurrentUser:self save:YES];
         block(YES, nil);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if (operation.responseObject) {
@@ -394,13 +446,37 @@
 
 
 + (BOOL)logout {
+    _user = nil;
     return [[JBCacheManager sharedJBCacheManager] clearJBUserCacheFile];
 }
 
 
++ (void)changeCurrentUser:(JBUser *)newUser save:(BOOL)save {
+    if (save && newUser) {
+        [[JBCacheManager sharedJBCacheManager] writeJBUserCacheFile:[newUser dictionaryForObject]];
+        newUser.objectId = [newUser objectForKey:@"_id"];
+        newUser.sessionToken = [newUser objectForKey:@"sessionToken"];
+        newUser.password = [newUser objectForKey:@"password"];
+        newUser.phone = [newUser objectForKey:@"phone"];
+        newUser.email = [newUser objectForKey:@"email"];
+        if ([newUser objectForKey:@"auth"]) {
+            newUser.auth = [newUser objectForKey:@"auth"];
+        }
+        _user = newUser;
+    }else if (save && newUser == nil) {
+        [[JBCacheManager sharedJBCacheManager] clearJBUserCacheFile];
+    }
+}
+
 + (JBUser *)currentUser {
-    JBUser *jbUser = [[JBCacheManager sharedJBCacheManager] readJBUserCacheFile];
-    return jbUser;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _user = [[JBCacheManager sharedJBCacheManager] readJBUserCacheFile];
+    });
+    if (_user) {
+        _user.className = @"_User";
+    }
+    return _user;
 }
 
 + (NSString *)getPlatform:(JBPlatform)platform {

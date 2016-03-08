@@ -28,9 +28,7 @@
 
 + (JBQuery *)queryWithClassName:(NSString *)className;
 
-
 - (NSMutableDictionary *)getQueryConditions;
-
 
 - (id)findObjects:(NSError **)error;
 
@@ -66,15 +64,15 @@
 
 - (NSInteger)countObjects:(NSError **)error;
 
-
-
 //查询条件
 - (void)whereKey:(NSString *)key equalTo:(id)value;
 
 - (void)whereKey:(NSString *)key notEqualTo:(id)value;
 
+//key所对应的value为null
 - (void)whereKeyExists:(NSString *)key;
 
+//key所对应的value不为null
 - (void)whereKeyDoesNotExist:(NSString *)key;
 
 - (void)whereKey:(NSString *)key lessThan:(id)value;
@@ -83,14 +81,34 @@
 
 - (void)whereKey:(NSString *)key greaterThan:(id)value;
 
+//key所对应的value_大于或等于value(param)
 - (void)whereKey:(NSString *)key greaterThanOrEqualTo:(id)value;
 
+//key所对应的value包含在array中
 - (void)whereKey:(NSString *)key containedIn:(NSArray *)array;
 
 - (void)whereKey:(NSString *)key notContainedIn:(NSArray *)array;
 
-- (void)whereKey:(NSString *)key containsString:(NSString *)value;
+//需要自行写正则表达式
+- (void)whereKey:(NSString *)key matchesRegex:(NSString *)regex;
 
+/**
+ *
+ *  @param regex     正则表达式
+ *  @param modifiers options i/m
+ */
+- (void)whereKey:(NSString *)key matchesRegex:(NSString *)regex modifiers:(NSString *)modifiers;
+
+//模糊匹配(区分大小写)
+- (void)whereKey:(NSString *)key containsString:(NSString *)substring;
+
+//以XX开头
+- (void)whereKey:(NSString *)key hasPrefix:(NSString *)prefix;
+
+//以XX结尾
+- (void)whereKey:(NSString *)key hasSuffix:(NSString *)suffix;
+
+//按key降序/升序
 - (void)orderByDescending:(NSString *)key;
 
 - (void)orderByAscending:(NSString *)key;
@@ -99,6 +117,7 @@
 
 - (void)addAscendingOrder:(NSString *)key;
 
+//查询包括一个JBObject对象，你可以使用.符号来指定所包含的对象
 - (void)includeKey:(NSString *)key;
 
 - (void)whereKey:(NSString *)key matchesQuery:(JBQuery *)query;
